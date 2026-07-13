@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Evaluación Plataformas Especiales 2026</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: #f2f4f7;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+      .card {
+        background: #fff;
+        padding: 32px;
+        border-radius: 10px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
+        width: 380px;
+      }
+      h2 {
+        margin-top: 0;
+        color: #222;
+      }
+      label {
+        display: block;
+        margin-top: 14px;
+        font-size: 14px;
+        color: #444;
+      }
+      input {
+        width: 100%;
+        padding: 9px;
+        margin-top: 4px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 14px;
+      }
+      button {
+        margin-top: 20px;
+        width: 100%;
+        padding: 10px;
+        background: #2f6fed;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 15px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #1f56c2;
+      }
+      button.secondary {
+        background: #6c757d;
+      }
+      button.secondary:hover {
+        background: #545b62;
+      }
+      .hidden {
+        display: none;
+      }
+      .notif {
+        margin-top: 16px;
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 13px;
+        white-space: pre-wrap;
+      }
+      .notif.ok {
+        background: #e6f7ee;
+        color: #1a7f4d;
+        border: 1px solid #b6e6cd;
+      }
+      .notif.error {
+        background: #fdecec;
+        color: #b3261e;
+        border: 1px solid #f5c2c2;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+        font-size: 12px;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 6px;
+        text-align: left;
+      }
+      th {
+        background: #f0f2f5;
+      }
+      .container-lista {
+        width: 640px;
+      }
+      .toolbar {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .toolbar select,
+      .toolbar input {
+        flex: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card" id="loginView">
+      <h2>Iniciar sesión</h2>
+      <label>Usuario</label>
+      <input type="text" id="loginUsuario" placeholder="admin" />
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="admin123" />
+      <button onclick="login()">Ingresar</button>
+      <div id="loginNotif"></div>
+    </div>
+
+    <div class="card hidden" id="registroView">
+      <h2>Registrar operación</h2>
+      <label>Operación</label>
+      <input type="text" id="opOperacion" placeholder="venta" />
+      <label>Importe</label>
+      <input type="text" id="opImporte" placeholder="100.00" />
+      <label>Cliente</label>
+      <input type="text" id="opCliente" placeholder="Angel" />
+      <label>Secreto</label>
+      <input type="text" id="opSecreto" placeholder="jejdjw134&3#$$" />
+      <button onclick="registrarOperacion()">Enviar</button>
+      <button class="secondary" onclick="mostrarLista()">
+        Ver transacciones
+      </button>
+      <div id="registroNotif"></div>
+    </div>
+
+    <div class="card container-lista hidden" id="listaView">
+      <h2>Transacciones registradas</h2>
+      <div class="toolbar">
+        <select id="ordenCampo">
+          <option value="id">id</option>
+          <option value="cliente">cliente</option>
+          <option value="operacion">operacion</option>
+          <option value="importe">importe</option>
+          <option value="estatus">estatus</option>
+        </select>
+        <select id="ordenDireccion">
+          <option value="asc">asc</option>
+          <option value="desc">desc</option>
+        </select>
+        <input
+          type="number"
+          id="tamanoPagina"
+          value="5"
+          min="1"
+          style="max-width: 70px"
+        />
+        <button
+          style="margin-top: 0; width: auto; padding: 8px 14px"
+          onclick="cargarPagina(0)"
+        >
+          Buscar
+        </button>
+      </div>
+      <table id="tablaTransacciones">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Operación</th>
+            <th>Importe</th>
+            <th>Cliente</th>
+            <th>Referencia</th>
+            <th>Estatus</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="toolbar">
+        <button class="secondary" onclick="cargarPagina(paginaActual - 1)">
+          Anterior
+        </button>
+        <button class="secondary" onclick="cargarPagina(paginaActual + 1)">
+          Siguiente
+        </button>
+      </div>
+      <button class="secondary" onclick="mostrarRegistro()">
+        Volver a registrar
+      </button>
+    </div>
+
+    <script>
+      const API_GATEWAY = "http://localhost:8081/api/gateway";
+      const API_BACKEND = "http://localhost:8082/api/backend";
+
+      const AES_PASSPHRASE = "MiClaveSecreta2026";
+
+      let paginaActual = 0;
+
+      function mostrarNotif(elId, mensaje, tipo) {
+        const el = document.getElementById(elId);
+        el.className = "notif " + tipo;
+        el.textContent = mensaje;
+      }
+
+      async function login() {
+        const usuario = document.getElementById("loginUsuario").value;
+        const password = document.getElementById("loginPassword").value;
+
+        try {
+          const res = await fetch(`${API_GATEWAY}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ usuario, password }),
+          });
+          const data = await res.json();
+
+          if (res.ok) {
+            document.getElementById("loginView").classList.add("hidden");
+            mostrarRegistro();
+          } else {
+            mostrarNotif(
+              "loginNotif",
+              data.mensaje || "Error de login",
+              "error",
+            );
+          }
+        } catch (e) {
+          mostrarNotif(
+            "loginNotif",
+            "No se pudo conectar con la API: " + e.message,
+            "error",
+          );
+        }
+      }
+
+      function mostrarRegistro() {
+        document.getElementById("listaView").classList.add("hidden");
+        document.getElementById("registroView").classList.remove("hidden");
+      }
+
+      function mostrarLista() {
+        document.getElementById("registroView").classList.add("hidden");
+        document.getElementById("listaView").classList.remove("hidden");
+        cargarPagina(0);
+      }
+
+      async function registrarOperacion() {
+        const operacion = document.getElementById("opOperacion").value;
+        const importe = document.getElementById("opImporte").value;
+        const cliente = document.getElementById("opCliente").value;
+        const secretoPlano = document.getElementById("opSecreto").value;
+
+        const secretoCifrado = CryptoJS.AES.encrypt(
+          secretoPlano,
+          AES_PASSPHRASE,
+        ).toString();
+
+        try {
+          const res = await fetch(`${API_GATEWAY}/venta`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              operacion,
+              importe,
+              cliente,
+              secreto: secretoCifrado,
+            }),
+          });
+          const data = await res.json();
+
+          if (res.ok) {
+            mostrarNotif(
+              "registroNotif",
+              "Transacción registrada:\n" + JSON.stringify(data, null, 2),
+              "ok",
+            );
+          } else {
+            mostrarNotif(
+              "registroNotif",
+              "Error:\n" + JSON.stringify(data, null, 2),
+              "error",
+            );
+          }
+        } catch (e) {
+          mostrarNotif(
+            "registroNotif",
+            "No se pudo conectar con la API: " + e.message,
+            "error",
+          );
+        }
+      }
+
+      async function cargarPagina(pagina) {
+        if (pagina < 0) pagina = 0;
+        paginaActual = pagina;
+
+        const sortBy = document.getElementById("ordenCampo").value;
+        const direction = document.getElementById("ordenDireccion").value;
+        const size = document.getElementById("tamanoPagina").value || 5;
+
+        try {
+          const res = await fetch(
+            `${API_BACKEND}/transacciones?page=${pagina}&size=${size}&sortBy=${sortBy}&direction=${direction}`,
+          );
+          const data = await res.json();
+
+          const tbody = document.querySelector("#tablaTransacciones tbody");
+          tbody.innerHTML = "";
+          (data.content || []).forEach((t) => {
+            const fila = document.createElement("tr");
+            fila.innerHTML = `<td>${t.id}</td><td>${t.operacion}</td><td>${t.importe}</td><td>${t.cliente}</td><td>${t.referencia}</td><td>${t.estatus}</td>`;
+            tbody.appendChild(fila);
+          });
+        } catch (e) {
+          alert("No se pudo cargar la lista: " + e.message);
+        }
+      }
+    </script>
+  </body>
+</html>

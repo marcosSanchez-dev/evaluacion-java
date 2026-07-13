@@ -1,0 +1,13 @@
+C:\Users\52553\Downloads\evaluacion-java-senior-2026\evaluacion-java\api-gateway\src\main\java\com\evaluacion\gateway\service\DataInitializer.java
+C:\Users\52553\Downloads\evaluacion-java-senior-2026\evaluacion-java\api-gateway\src\main\java\com\evaluacion\gateway\dto\TransaccionResponse.java
+C:\Users\52553\Downloads\evaluacion-java-senior-2026\evaluacion-java\api-gateway\src\main\java\com\evaluacion\gateway\service\TransaccionService.java
+C:\Users\52553\Downloads\evaluacion-java-senior-2026\evaluacion-java\api-gateway\src\main\java\com\evaluacion\gateway\model\Usuario.java
+C:\Users\52553\Downloads\evaluacion-java-senior-2026\evaluacion-java\api-gateway\src\main\java\com\evaluacion\gateway\repository\UsuarioRepository.java
+C:\Users\52553\Downloads\evaluacion-java-senior-2026\evaluacion-java\api-gateway\src\main\java\com\evaluacion\gateway\controller\AuthController.java
+C:\Users\52553\Downloads\evaluacion-java-senior-2026\evaluacion-java\api-gateway\src\main\java\com\evaluacion\gateway\dto\TransaccionRequest.java
+C:\Users\52553\Downloads\evaluacion-java-senior-2026\evaluacion-java\api-gateway\src\main\java\com\evaluacion\gateway\dto\TransaccionInternaRequest.java
+C:\Users\52553\Downloads\evaluacion-java-senior-2026\evaluacion-java\api-gateway\src\main\java\com\evaluacion\gateway\exception\GlobalExceptionHandler.java
+C:\Users\52553\Downloads\evaluacion-java-senior-2026\evaluacion-java\api-gateway\src\main\java\com\evaluacion\gateway\controller\TransaccionController.java
+C:\Users\52553\Downloads\evaluacion-java-senior-2026\evaluacion-java\api-gateway\src\main\java\com\evaluacion\gateway\dto\LoginRequest.java
+C:\Users\52553\Downloads\evaluacion-java-senior-2026\evaluacion-java\api-gateway\src\main\java\com\evaluacion\gateway\GatewayApplication.java
+C:\Users\52553\Downloads\evaluacion-java-senior-2026\evaluacion-java\api-gateway\src\main\java\com\evaluacion\gateway\util\AesEncryptionUtil.java
