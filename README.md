@@ -1,8 +1,3 @@
-# Evaluación Plataformas Especiales 2026 — Solución
-
-Proyecto de dos microservicios Spring Boot + frontend en HTML/JS puro, resolviendo
-el ejercicio solicitado.
-
 ## Arquitectura
 
 ```
@@ -71,40 +66,3 @@ Content-Type: application/json
   "estatus": "cancelar"
 }
 ```
-
-## Decisiones de diseño (para poder explicarlas en la entrevista)
-
-1. **Por qué dos microservicios separados y no uno solo**: así se respeta
-   exactamente el flujo pedido (API 1 recibe/valida/descifra → reenvía a API 2
-   que persiste), y se practica comunicación entre servicios con `RestTemplate`.
-2. **Cifrado AES-256 del campo `secreto`**: en el front se usa `CryptoJS.AES.encrypt`
-   con una passphrase compartida. CryptoJS genera un string en formato compatible
-   con OpenSSL (`Salted__` + salt + datos), por lo que en Java se reconstruye la
-   derivación de llave/IV (EVP_BytesToKey con MD5) en `AesEncryptionUtil.java`
-   para poder descifrarlo. Una vez descifrado, se guarda en texto plano en la
-   base de datos, tal como pide el enunciado.
-3. **Validaciones**: se usan anotaciones de Bean Validation (`@NotBlank`,
-   `@Pattern`) sobre el DTO de entrada, y un `@RestControllerAdvice`
-   (`GlobalExceptionHandler`) centraliza el manejo de errores de validación y
-   de errores al llamar a la API 2.
-4. **Password de login con BCrypt**: se usa `BCryptPasswordEncoder` de
-   `spring-security-crypto` (sin habilitar todo el módulo de Spring Security,
-   ya que el ejercicio no pide seguridad de endpoints, solo el hash del
-   password). El usuario demo se inserta automáticamente vía `CommandLineRunner`.
-5. **Referencia y estatus**: se generan en la API 2 con `SecureRandom`
-   (6 dígitos) al momento de guardar, y el estatus inicial siempre es "Aprobada".
-6. **PATCH con `@Query`**: se actualiza el estatus a "Cancelada" solo si
-   coinciden `id` y `referencia`, usando una consulta JPQL con `@Modifying`.
-7. **Paginación**: se implementa con `Pageable`/`PageRequest` de Spring Data
-   JPA, permitiendo indicar página, tamaño y campo/dirección de ordenamiento
-   por query params.
-
-## Posibles mejoras (si preguntan "qué le faltaría")
-
-- Mover la passphrase AES y demás configuración sensible a variables de entorno.
-- Agregar Spring Security completo con JWT para proteger los endpoints tras el login.
-- Agregar pruebas unitarias (JUnit/Mockito) para servicios y controllers.
-- Usar OpenFeign en vez de RestTemplate (que ya está deprecado a futuro) para
-  la comunicación entre microservicios.
-- Manejo de errores más granular (por ejemplo, tiempo de espera/circuit breaker
-  con Resilience4j al llamar a la API 2).
